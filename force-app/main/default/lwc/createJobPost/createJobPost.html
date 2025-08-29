@@ -1,3 +1,28 @@
 <template>
-    
+    <lightning-card>
+        <!-- Title centered -->
+        <div class="center-content">
+            <h1>New Job Post</h1>
+        </div>
+
+        <!-- Form fields -->
+        <div class="slds-p-around_medium">
+            <lightning-record-edit-form 
+                object-api-name="Job_Post__c"
+                onsuccess={handleSuccess}>
+
+                <lightning-input-field field-name="Job_Title__c" required></lightning-input-field>
+                <lightning-input-field field-name="Job_Description__c" required></lightning-input-field>
+                <lightning-input-field field-name="Required_Skills__c"></lightning-input-field>
+                <lightning-input-field field-name="Location__c" required></lightning-input-field>
+                <lightning-input-field field-name="Experience_Required__c"></lightning-input-field>
+                <lightning-input-field field-name="Status__c"></lightning-input-field>
+
+                <!-- Button centered -->
+                <div class="center-button slds-m-top_medium">
+                    <lightning-button class="large-button" type="submit" variant="brand" label="Post"></lightning-button>
+                </div>
+            </lightning-record-edit-form>
+        </div>
+    </lightning-card>
 </template>
