@@ -1,28 +1,21 @@
-/* Container for the title, centers horizontally */
-.center-content {
-    display: flex;              /* Use flexbox */
-    justify-content: center;    /* Center horizontally */
-    align-items: center;        /* Center vertically inside container */
-    text-align: center;         /* Center text inside h1 */
-    margin-bottom: 20px;        /* Space between title and form */
+.header-container {
+    position: relative;
+    text-align: center; /* centers the title */
 }
 
-/* Styling for the main title */
-.center-content h1 {
-    font-size: 2rem;           /* Makes the title bigger */
-    font-weight: bold;          /* Makes text bold */
-    color: #16325c;             /* Salesforce-dark color */
+.close-button {
+    position: absolute;
+    right: 0; /* move button to right */
+    top: 50%;
+    transform: translateY(-50%); /* vertically center the button */
+}
+
+.center-title {
+    margin: 0; /* remove default h1 margin */
 }
 
 /* Container for the Post button, centers it horizontally */
 .center-button {
     display: flex;              /* Use flexbox */
     justify-content: center;    /* Center the button horizontally */
-}
-
-/* Make the Post button bigger */
-.large-button {
-    font-size: 1.2rem;        /* Increase text size */
-    padding: 0.75rem 2rem;    /* Increase height and width */
-    min-width: 120px;          /* Optional: ensures minimum width */
 }

@@ -1,28 +1,72 @@
-import { LightningElement } from 'lwc';
+// createJobPost.js
+import { LightningElement, api, wire, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { NavigationMixin } from 'lightning/navigation';
+import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
+import { getRecordIdFromPageRef } from 'c/inContextUtils';
 
 export default class CreateJobPost extends NavigationMixin(LightningElement) {
-    handleSuccess(event) {
-        const recordId = event.detail.id;
+    @api recordId;  
+    @track isEdit = false;
 
-        // Show Sucess message when new job is created
+    @wire(CurrentPageReference)
+    setCurrentPageReference(pageRef) {
+        // Use utility function
+        this.recordId = this.recordId || getRecordIdFromPageRef(pageRef);
+        this.isEdit = !!this.recordId;
+    }
+
+    // Dynamic title
+    get pageTitle() {
+        return this.isEdit ? 'Edit Job Post' : 'New Job Post';
+    }
+
+    // Dynamic button text
+    get buttonLabel() {
+        return this.isEdit ? 'Update' : 'Post';
+    }
+
+    // Success handler
+    handleSuccess(event) {
+        const newRecordId = event.detail.id;
         this.dispatchEvent(
             new ShowToastEvent({
                 title: 'Success',
-                message: 'Job Post created successfully!',
+                message: this.isEdit
+                    ? 'Job Post updated successfully!'
+                    : 'Job Post created successfully!',
                 variant: 'success'
             })
         );
 
-        // Redirect to the new record page when Post button is clicked
         this[NavigationMixin.Navigate]({
             type: 'standard__recordPage',
             attributes: {
-                recordId: recordId,
+                recordId: newRecordId,
                 objectApiName: 'Job_Post__c',
                 actionName: 'view'
             }
         });
+    }
+
+    // Cancel or Close handler
+    handleClose() {
+        if (this.isEdit) {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: this.recordId,
+                    objectApiName: 'Job_Post__c',
+                    actionName: 'view'
+                }
+            });
+        } else {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__objectPage',
+                attributes: {
+                    objectApiName: 'Job_Post__c',
+                    actionName: 'list'
+                }
+            });
+        }
     }
 }
