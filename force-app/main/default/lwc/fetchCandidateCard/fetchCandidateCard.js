@@ -29,10 +29,11 @@ export default class fetchCandidateCard extends LightningElement {
     handleSearch() {
         fetchCandidates({ jobPostId: this.recordId })
             .then(result => {
+                // result is FetchResponse { message, candidates }
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',
-                        message: result.length + ' candidates added successfully.',
+                        message: result.message, // use result.message, not result.length
                         variant: 'success'
                     })
                 );
@@ -47,4 +48,5 @@ export default class fetchCandidateCard extends LightningElement {
                 );
             });
     }
+
 }
