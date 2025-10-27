@@ -1,0 +1,22 @@
+<template>
+    <lightning-card class="custom-card">
+        <div class="card-header">
+            <h1 class="card-title">{jobTitle}</h1>
+        </div>
+
+        <div class="card-body">
+            <p><strong>Status:</strong> {status}</p>
+            <p><strong>Location:</strong> {location}</p>
+        </div>
+
+        <div class="card-footer">
+            <p>Ready to search for applicants who expressed interest in this role?</p>
+            <lightning-button
+                label="Fetch Candidates"
+                title="Fetch Candidates"
+                onclick={handleSearch}
+                variant="brand">
+            </lightning-button>
+        </div>
+    </lightning-card>
+</template>
