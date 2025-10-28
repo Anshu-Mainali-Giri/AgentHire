@@ -30,11 +30,22 @@ export default class fetchCandidateCard extends LightningElement {
         fetchCandidates({ jobPostId: this.recordId })
             .then(result => {
                 // result is FetchResponse { message, candidates }
+                let variant = 'success';
+                let title = 'Success';
+                
+                if (result.message.includes('wait at least') || result.message.includes('Please wait')) {
+                    variant = 'warning';
+                    title = 'Please Wait';
+                } else if (result.message.includes('No new candidates found')) {
+                    variant = 'info';
+                    title = 'No New Candidates';
+                }
+                
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: 'Success',
-                        message: result.message, // use result.message, not result.length
-                        variant: 'success'
+                        title: title,
+                        message: result.message,
+                        variant: variant
                     })
                 );
             })

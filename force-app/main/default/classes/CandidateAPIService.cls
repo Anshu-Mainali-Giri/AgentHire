@@ -69,14 +69,14 @@ public with sharing class CandidateAPIService {
         String message = '';
         
         if (jobPost.First_Fetch_Date__c == null) {
-            // First fetch - 20 candidates
-            fetchLimit = 20;
+            // First fetch - 30 candidates
+            fetchLimit = 30;
             jobPost.First_Fetch_Date__c = now;
             jobPost.Last_Fetch_Time__c = now;
         } else if (jobPost.Last_Fetch_Time__c != null) {
             Long minutesDiff = (now.getTime() - jobPost.Last_Fetch_Time__c.getTime()) / (1000 * 60);
             Long hoursDiff = (now.getTime() - jobPost.Last_Fetch_Time__c.getTime()) / (1000 * 60 * 60);
-            Long daysDiff = (now.getTime() - jobPost.First_Fetch_Date__c.getTime()) / (1000 * 60 * 60 * 24);
+            Long totalHours = (now.getTime() - jobPost.First_Fetch_Date__c.getTime()) / (1000 * 60 * 60);
             
             if (minutesDiff < 5) {
                 message = 'No new candidates found.';
@@ -84,17 +84,17 @@ public with sharing class CandidateAPIService {
             } else if (hoursDiff < 12) {
                 message = 'Please wait at least 12 hours before fetching new candidates.';
                 fetchLimit = 0;
-            } else if (daysDiff < 1 && hoursDiff >= 12) {
+            } else if (totalHours >= 12 && totalHours < 24) {
                 // 12-24 hours after first fetch - 10 candidates
                 fetchLimit = 10;
                 jobPost.Last_Fetch_Time__c = now;
-            } else if (daysDiff >= 1 && daysDiff < 2) {
-                // Next day - 5 candidates
-                fetchLimit = 5;
+            } else if (totalHours >= 24 && totalHours < 36) {
+                // 24+ hours after first fetch - 10 candidates
+                fetchLimit = 10;
                 jobPost.Last_Fetch_Time__c = now;
             } else {
-                // After 2+ days - no more fetching
-                message = 'You already have the best candidates for this role.';
+                // After 36+ hours - no more fetching
+                message = 'No new candidates found.';
                 fetchLimit = 0;
             }
         }
@@ -139,7 +139,7 @@ public with sharing class CandidateAPIService {
         List<Object> rawCandidates = (List<Object>) result.get('candidates');
         if (rawCandidates == null) rawCandidates = new List<Object>();
 
-        // 5️⃣ Wrap and sort ALL API candidates first
+        // 5️⃣ Wrap and sort API candidates with experience filter
         List<CandidateWrapper> allApiCandidates = new List<CandidateWrapper>();
         for (Object obj : rawCandidates) {
             Map<String, Object> cand = (Map<String, Object>) obj;
@@ -149,6 +149,11 @@ public with sharing class CandidateAPIService {
             Decimal exp = 0;
             if (cand.containsKey('experienceYears') && cand.get('experienceYears') != null) {
                 try { exp = Decimal.valueOf(String.valueOf(cand.get('experienceYears'))); } catch (Exception e) {}
+            }
+            
+            // Filter by minimum experience if specified
+            if (jobPost.Experience_Required__c != null && exp < jobPost.Experience_Required__c) {
+                continue;
             }
 
             String skillsStr = '';
