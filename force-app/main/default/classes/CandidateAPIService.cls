@@ -31,11 +31,11 @@ public with sharing class CandidateAPIService {
             if (this.locationPriority && !other.locationPriority) return -1;
             if (!this.locationPriority && other.locationPriority) return 1;
 
-            if (this.experience > other.experience) return -1;
-            if (this.experience < other.experience) return 1;
-
             if (this.skillMatches > other.skillMatches) return -1;
             if (this.skillMatches < other.skillMatches) return 1;
+
+            if (this.experience > other.experience) return -1;
+            if (this.experience < other.experience) return 1;
 
             return 0;
         }
@@ -177,11 +177,56 @@ public with sharing class CandidateAPIService {
             allApiCandidates.add(new CandidateWrapper(newCand, jobPost.Location__c, requiredSkills));
         }
         
-        // Sort API candidates and take only the limit
-        allApiCandidates.sort();
+        // Create mixed experience distribution
         List<Candidate__c> limitedApiCandidates = new List<Candidate__c>();
-        for (Integer i = 0; i < Math.min(fetchLimit, allApiCandidates.size()); i++) {
-            limitedApiCandidates.add(allApiCandidates[i].candidateRec);
+        if (!allApiCandidates.isEmpty()) {
+            // Group by location priority first
+            List<CandidateWrapper> locationMatch = new List<CandidateWrapper>();
+            List<CandidateWrapper> locationOther = new List<CandidateWrapper>();
+            
+            for (CandidateWrapper cw : allApiCandidates) {
+                if (cw.locationPriority) {
+                    locationMatch.add(cw);
+                } else {
+                    locationOther.add(cw);
+                }
+            }
+            
+            // Sort each group by skills, then experience
+            locationMatch.sort();
+            locationOther.sort();
+            
+            // Take mixed experience from location matches first
+            Integer taken = 0;
+            Integer maxPerGroup = Math.max(1, fetchLimit / 4); // Take varied candidates
+            
+            // Take from location matches with experience variety
+            for (Integer i = 0; i < locationMatch.size() && taken < fetchLimit; i += Math.max(1, locationMatch.size() / maxPerGroup)) {
+                limitedApiCandidates.add(locationMatch[i].candidateRec);
+                taken++;
+            }
+            
+            // Fill remaining with other locations
+            for (Integer i = 0; i < locationOther.size() && taken < fetchLimit; i += Math.max(1, locationOther.size() / maxPerGroup)) {
+                limitedApiCandidates.add(locationOther[i].candidateRec);
+                taken++;
+            }
+            
+            // If still need more, take sequentially
+            for (CandidateWrapper cw : allApiCandidates) {
+                if (taken >= fetchLimit) break;
+                Boolean alreadyAdded = false;
+                for (Candidate__c added : limitedApiCandidates) {
+                    if (added.Profile_URL__c == cw.candidateRec.Profile_URL__c) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    limitedApiCandidates.add(cw.candidateRec);
+                    taken++;
+                }
+            }
         }
 
         // 6️⃣ Combine existing + limited new candidates
