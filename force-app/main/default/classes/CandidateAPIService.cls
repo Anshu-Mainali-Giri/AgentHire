@@ -104,20 +104,19 @@ public with sharing class CandidateAPIService {
             resp.message = message;
             resp.candidates = [
                 SELECT Id, Candidate_Name__c, Profile_URL__c, Experience__c,
-                       Skills__c, Location__c, Rank__c, Is_Top__c
+                       Skills__c, Location__c
                 FROM Candidate__c
-                WHERE Job_Post__c = :jobPostId AND Is_Top__c = true
-                ORDER BY Rank__c ASC
+                WHERE Job_Post__c = :jobPostId
+                ORDER BY CreatedDate DESC
             ];
             return resp;
         }
 
         // 3️⃣ Fetch existing candidates
         List<Candidate__c> topExisting = [
-            SELECT Id, Candidate_Name__c, Profile_URL__c, Experience__c, Skills__c, Location__c,
-                   Rank__c, Is_Top__c
+            SELECT Id, Candidate_Name__c, Profile_URL__c, Experience__c, Skills__c, Location__c
             FROM Candidate__c
-            WHERE Job_Post__c = :jobPostId AND Is_Top__c = true
+            WHERE Job_Post__c = :jobPostId
         ];
         Set<String> existingProfiles = new Set<String>();
         for (Candidate__c c : topExisting) {
@@ -229,51 +228,21 @@ public with sharing class CandidateAPIService {
             }
         }
 
-        // 6️⃣ Combine existing + limited new candidates
-        List<CandidateWrapper> combined = new List<CandidateWrapper>();
-        for (Candidate__c c : topExisting) combined.add(new CandidateWrapper(c, jobPost.Location__c, requiredSkills));
-        for (Candidate__c c : limitedApiCandidates) combined.add(new CandidateWrapper(c, jobPost.Location__c, requiredSkills));
-
-        combined.sort();
-
-        // 7️⃣ Determine new rankings
-        List<Candidate__c> newTopCandidates = new List<Candidate__c>();
-        Integer rank = 1;
-        for (CandidateWrapper cw : combined) {
-            cw.candidateRec.Rank__c = rank;
-            cw.candidateRec.Is_Top__c = true;
-            newTopCandidates.add(cw.candidateRec);
-            rank++;
-        }
-
-        // 8️⃣ Update Job Post and Insert new candidates
+        // 6️⃣ Update Job Post and Insert new candidates
         update jobPost;
         if (!limitedApiCandidates.isEmpty()) insert limitedApiCandidates;
 
-        // 9️⃣ Update existing candidates
-        List<Candidate__c> toUpdate = new List<Candidate__c>();
-        for (Candidate__c c : topExisting) {
-            for (Candidate__c updated : newTopCandidates) {
-                if (c.Id == updated.Id) {
-                    c.Rank__c = updated.Rank__c;
-                    toUpdate.add(c);
-                    break;
-                }
-            }
-        }
-        if (!toUpdate.isEmpty()) update toUpdate;
-
-        // 🔟 Prepare response
+        // 7️⃣ Prepare response
         List<Candidate__c> finalList = [
             SELECT Id, Candidate_Name__c, Profile_URL__c, Experience__c,
-                   Skills__c, Location__c, Rank__c, Is_Top__c
+                   Skills__c, Location__c
             FROM Candidate__c
-            WHERE Job_Post__c = :jobPostId AND Is_Top__c = true
-            ORDER BY Rank__c ASC
+            WHERE Job_Post__c = :jobPostId
+            ORDER BY CreatedDate DESC
         ];
 
         FetchResponse resp = new FetchResponse();
-        resp.message = limitedApiCandidates.size() + ' best candidates fetched and ranked.';
+        resp.message = limitedApiCandidates.size() + ' candidates fetched successfully.';
         resp.candidates = finalList;
         return resp;
     }

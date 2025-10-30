@@ -8,6 +8,7 @@
         <name>ApexClass</name>
     </types>
     <types>
+        <members>ApplicationTrigger</members>
         <members>JobPostTrigger</members>
         <name>ApexTrigger</name>
     </types>
