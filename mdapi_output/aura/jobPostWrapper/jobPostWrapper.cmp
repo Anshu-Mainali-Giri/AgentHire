@@ -1,3 +1,0 @@
-<aura:component implements="force:hasRecordId,force:lightningQuickAction,lightning:actionOverride" access="global">
-    <c:createJobPost />
-</aura:component>

@@ -8,6 +8,18 @@
 .localdevserver/
 deploy-options.json
 
+# MDAPI output
+mdapi_output/
+
+# Salesforce DX
+.vscode/
+*.tmp
+*.bak
+
+# IDE files
+.idea/
+*.iml
+
 # LWC VSCode autocomplete
 **/lwc/jsconfig.json
 
@@ -46,3 +58,17 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# OS generated files
+*.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
